@@ -8,12 +8,18 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 
-# --- CONFIG ---
-URLS = [
-    "https://dap-news.com/sport/2025/09/17/537427/",
-    "https://dap-news.com/sport/2025/10/09/543389/",
-    "https://dap-news.com/sport/2019/10/25/1887/",
-]
+
+def get_url():
+    with open("news_links.csv", newline="") as csvfile:
+        reader = csv.DictReader(csvfile)
+        urls = [row["URL"] for row in reader]
+
+    return urls
+
+
+# # --- CONFIG ---
+URLS = get_url()
+# URLS = ["https://dap-news.com/sport/2025/09/17/537427/"]
 WAIT_TIME = 15
 CSV_FILE = "khmer_content.csv"
 
@@ -35,7 +41,7 @@ khmer_pattern = re.compile(r"[\u1780-\u17FF]+")
 
 with open(CSV_FILE, "w", encoding="utf-8-sig", newline="") as csvfile:
     writer = csv.writer(csvfile)
-    writer.writerow(["ID", "Khmer_Text"])  # CSV header
+    writer.writerow(["ID", "Khmer_Text", "Label"])  # CSV header
 
     unqiue_id = 1
 
@@ -44,6 +50,9 @@ with open(CSV_FILE, "w", encoding="utf-8-sig", newline="") as csvfile:
         driver.get(URL)
 
         try:
+
+            label = URL.split("/")[3] if len(URL.split("/")) > 3 else ""
+
             # Wait for main content
             WebDriverWait(driver, WAIT_TIME).until(
                 EC.presence_of_element_located((By.ID, "content-main"))
@@ -64,11 +73,11 @@ with open(CSV_FILE, "w", encoding="utf-8-sig", newline="") as csvfile:
             khmer_paragraphs = [p for p in paragraphs if khmer_pattern.search(p)]
 
             if khmer_paragraphs:
-                for text in khmer_paragraphs:
-                    writer.writerow([unqiue_id, text])
-                    unqiue_id += 1
-
+                # Join all Khmer paragraphs into one text
+                full_text = " ".join(khmer_paragraphs)
+                writer.writerow([unqiue_id, full_text, label])
                 print(f"✅ Article {unqiue_id} saved.")
+                unqiue_id += 1
             else:
                 print(f"⚠️ No Khmer text found for {URL}")
 

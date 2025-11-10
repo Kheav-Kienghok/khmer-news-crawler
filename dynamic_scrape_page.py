@@ -8,7 +8,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 
 # --- CONFIG ---
-START_URL = "https://dap-news.com/category/sport/"
+START_URL = "https://dap-news.com/category/politic/"
 WAIT_TIME = 10
 CSV_FILE = "dap_news_links.csv"
 
@@ -33,13 +33,13 @@ try:
     while True:
         page_count += 1
         print(f"\n🌐 Scraping page {page_count} ...")
-        
+
         # Wait for posts to load
         WebDriverWait(driver, WAIT_TIME).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "li.infinite-post"))
         )
         time.sleep(2)
-        
+
         # Parse with BeautifulSoup
         soup = BeautifulSoup(driver.page_source, "html.parser")
         posts = soup.select("li.infinite-post a")
@@ -83,4 +83,6 @@ with open(CSV_FILE, "w", encoding="utf-8-sig", newline="") as csvfile:
     for i, link in enumerate(all_links, start=1):
         writer.writerow([i, link])
 
-print(f"\n🎯 Done! Collected {len(all_links)} unique links across {page_count} pages and saved to {CSV_FILE}")
+print(
+    f"\n🎯 Done! Collected {len(all_links)} unique links across {page_count} pages and saved to {CSV_FILE}"
+)
